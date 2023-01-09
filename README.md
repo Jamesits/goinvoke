@@ -27,13 +27,13 @@ func main() {
 		panic(err)
 	}
 
-	// GetTicketCount should return a non-zero value
 	count, _, err := k.GetTickCount.Call()
 	if !errors.Is(err, windows.ERROR_SUCCESS) {
 		panic(err)
-    }
+	}
 	fmt.Printf("GetTickCount() returns %d\n", count)
 }
+
 ```
 
 See [Godoc](https://pkg.go.dev/github.com/jamesits/goinvoke) for detailed documentation.

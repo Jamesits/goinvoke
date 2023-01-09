@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="go test" type="GoTestRunConfiguration" factoryName="Go Test">
-    <module name="go-dll" />
+    <module name="goinvoke" />
     <working_directory value="$PROJECT_DIR$" />
     <kind value="PACKAGE" />
     <package value="github.com/jamesits/goinvoke" />
