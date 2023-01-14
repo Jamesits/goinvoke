@@ -92,6 +92,9 @@ func TestUnmarshalKernel32(t *testing.T) {
 	// GetStartupInfoW should return something from its reference argument
 	startupInfo := windows.StartupInfo{}
 	ret1, ret2, err = k.GetStartupInfo.Call(uintptr(unsafe.Pointer(&startupInfo)))
+	assert.NotZero(t, ret1)
+	assert.NotZero(t, ret2)
+	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
 	// string conversion: https://gist.github.com/NaniteFactory/9e9d3fe5ea7bfeed788b0795162201c7
 	lpTitle := windows.UTF16PtrToString(startupInfo.Title)
 	assert.True(t, len(lpTitle) > 0)

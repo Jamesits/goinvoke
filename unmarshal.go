@@ -17,9 +17,12 @@ func init() {
 }
 
 // Unmarshal loads the DLL into memory, then fills all struct fields with type *windows.LazyProc with exported functions.
-// Due to security concerns, if the path is relative and only contains a base name (e.g. "kernel32.dll"), file lookup
-// is limited to Windows system directories. If you want to load a DLL from your working directory, specify it
-// explicitly with ".\\filename.dll".
+//
+// Notes:
+// - Due to security concerns, if the path is relative and only contains a base name (e.g. "kernel32.dll"), file lookup
+// is limited to *only* Windows system directories. If you really want to load a DLL from the working directory
+// (bad practice, strongly not recommended), specify it explicitly with ".\\filename.dll".
+// - If multiple Unmarshal() is called with the same path string, the reference to the DLL will be cached.
 func Unmarshal(path string, v any) (err error) {
 	globalDLLReferenceCacheWriteLock.Lock()
 	defer globalDLLReferenceCacheWriteLock.Unlock()
