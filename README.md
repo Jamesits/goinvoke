@@ -40,7 +40,7 @@ func main() {
 	// a more complete example
 	startupInfo := windows.StartupInfo{}
 	_, _, err = k.GetStartupInfo.Call(uintptr(unsafe.Pointer(&startupInfo)))
-	if err != windows.ERROR_SUCCESS {
+	if !errors.Is(err, windows.ERROR_SUCCESS) {
 		panic(err)
 	}
 	lpTitle := windows.UTF16PtrToString(startupInfo.Title)
