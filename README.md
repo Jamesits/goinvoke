@@ -42,7 +42,7 @@ func main() {
 	_, _, err = k.GetStartupInfo.Call(uintptr(unsafe.Pointer(&startupInfo)))
 	if err != windows.ERROR_SUCCESS {
 		panic(err)
-    }
+	}
 	lpTitle := windows.UTF16PtrToString(startupInfo.Title)
 	fmt.Printf("lpTitle = %s\n", lpTitle)
 }
