@@ -12,6 +12,10 @@ import (
 	"strings"
 )
 
+const importPath = "github.com/jamesits/goinvoke"
+const selfPackageName = "goinvoke"
+const documentationURL = "https://pkg.go.dev/github.com/jamesits/goinvoke"
+
 // note: exit code conforms to sysexits.h
 func main() {
 	var err error
@@ -61,9 +65,10 @@ func main() {
 	}
 
 	d := templateData{
-		ImportPath:      "github.com/jamesits/goinvoke",
-		SelfPackageName: "goinvoke",
-		CommandLine:     os.Args,
+		SelfImportPath:       importPath,
+		SelfPackageName:      selfPackageName,
+		SelfDocumentationURL: documentationURL,
+		CommandLine:          os.Args,
 
 		SelfGenerate: selfGenerate,
 

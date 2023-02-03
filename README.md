@@ -55,6 +55,9 @@ See [Godoc](https://pkg.go.dev/github.com/jamesits/goinvoke) for detailed docume
 
 ## Type Generator
 
+Have a large DLL with a lot of functions and want to access all of them at once? Use our convenient `invoker` tool to
+generate the struct required!
+
 ```shell
 # first time
 go install github.com/jamesits/goinvoke/cmd/invoker@latest
