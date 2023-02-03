@@ -72,7 +72,7 @@ For detailed usage of `invoker` tool, run `invoker -help`.
 ## Relative Import
 
 Due to security concerns, if the path is relative and only contains a base name (e.g. `"kernel32.dll"`), file lookup
-is limited to *only* System32 directories. 
+is limited to *only* `%WINDIR%\System32`. 
 
 If you want to load a DLL packaged with your program, the correct way is to get the program base directory first:
 ```go
