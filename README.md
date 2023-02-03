@@ -94,7 +94,7 @@ func main() {
 	programDir, err := utils.ExecutableDir()
 	if err != nil {
 		panic(err)
-    }
+	}
 	
 	myDll := MyDll{}
 	err = goinvoke.Unmarshal(filepath.Join(programDir, "filename.dll"), &myDll)
