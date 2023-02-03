@@ -35,7 +35,7 @@ func main() {
 	if !errors.Is(err, windows.ERROR_SUCCESS) {
 		panic(err)
 	}
-	fmt.Printf("GetTickCount() returns %d\n", count)
+	fmt.Printf("GetTickCount() = %d\n", count)
 
 	// a more complete example
 	startupInfo := windows.StartupInfo{}
@@ -50,3 +50,54 @@ func main() {
 ```
 
 See [Godoc](https://pkg.go.dev/github.com/jamesits/goinvoke) for detailed documentation.
+
+# Caveats
+
+## Type Generator
+
+```shell
+# first time
+go install github.com/jamesits/goinvoke/cmd/invoker@latest
+invoker -dll "kernel32.dll" -generate
+
+# in the future, when your DLL is updated with new exported functions
+go generate ./...
+```
+
+For detailed usage of `invoker` tool, run `invoker -help`.
+
+## Relative Import
+
+Due to security concerns, if the path is relative and only contains a base name (e.g. `"kernel32.dll"`), file lookup
+is limited to *only* Windows system directories. 
+
+If you want to load a DLL packaged with your program, the correct way is to get the program base directory first:
+```go
+package main
+
+import (
+	"github.com/jamesits/goinvoke"
+	"os"
+	"path/filepath"
+)
+
+type MyDll struct {
+	// ...
+}
+
+func main() {
+	executablePath, err := os.Executable()
+	if err != nil {
+		// process error
+		panic(err)
+	}
+	// directory containing current executable
+	executableBaseDir := filepath.Dir(executablePath) 
+
+	myDll := MyDll{}
+	err = goinvoke.Unmarshal(filepath.Join(executableBaseDir, "filename.dll"), &myDll)
+}
+```
+
+If you really want to load a DLL from your *working directory* (bad practice, strongly not recommended!), specify your 
+intention explicitly with ".\\filename.dll".

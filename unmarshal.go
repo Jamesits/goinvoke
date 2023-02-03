@@ -1,10 +1,11 @@
+//go:build windows
+
 package goinvoke
 
 import (
+	"github.com/jamesits/goinvoke/utils"
 	"golang.org/x/sys/windows"
-	"path/filepath"
 	"reflect"
-	"strings"
 	"sync"
 )
 
@@ -17,22 +18,17 @@ func init() {
 }
 
 // Unmarshal loads the DLL into memory, then fills all struct fields with type *windows.LazyProc with exported functions.
-//
-// Notes:
-// - Due to security concerns, if the path is relative and only contains a base name (e.g. "kernel32.dll"), file lookup
-// is limited to *only* Windows system directories. If you really want to load a DLL from the working directory
-// (bad practice, strongly not recommended), specify it explicitly with ".\\filename.dll".
-// - If multiple Unmarshal() is called with the same path string, the reference to the DLL will be cached.
 func Unmarshal(path string, v any) (err error) {
 	globalDLLReferenceCacheWriteLock.Lock()
 	defer globalDLLReferenceCacheWriteLock.Unlock()
 
+	// If multiple Unmarshal() is called with the same path string, the reference to the DLL will be cached.
 	d, ok := globalDllReferenceCache[path]
 	if !ok {
-		if filepath.IsAbs(path) || strings.ContainsRune(filepath.Clean(path), filepath.Separator) {
-			d = windows.NewLazyDLL(path)
-		} else {
+		if utils.IsImplicitRelativePath(path) {
 			d = windows.NewLazySystemDLL(path)
+		} else {
+			d = windows.NewLazyDLL(path)
 		}
 		globalDllReferenceCache[path] = d
 	}
