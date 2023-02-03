@@ -1,6 +1,8 @@
 # goinvoke
 
-Load DLLs and import functions with ease. If all you need is `LoadLibrary` and `GetProcAddress`, this library is a lot easier to work with than CGO.
+Load DLLs and import functions with ease. 
+
+If all you need is `LoadLibrary` and `GetProcAddress`, this library is a lot easier to work with than cgo.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/jamesits/goinvoke.svg)](https://pkg.go.dev/github.com/jamesits/goinvoke)
 
@@ -101,5 +103,5 @@ func main() {
 }
 ```
 
-If you really want to load a DLL from your *working directory*, specify your intention explicitly with ".\\filename.dll".
+If you really want to load a DLL from your *working directory*, specify your intention explicitly with `".\\filename.dll"`.
 Loading a DLL from an arbitrary working directory might lead to serious security issues. DO NOT do this unless you know exactly what you are doing.
