@@ -80,7 +80,7 @@ package main
 
 import (
 	"github.com/jamesits/goinvoke"
-	"os"
+	"github.com/jamesits/goinvoke/utils"
 	"path/filepath"
 )
 
@@ -89,16 +89,8 @@ type MyDll struct {
 }
 
 func main() {
-	executablePath, err := os.Executable()
-	if err != nil {
-		// process error
-		panic(err)
-	}
-	// directory containing current executable
-	executableBaseDir := filepath.Dir(executablePath) 
-
 	myDll := MyDll{}
-	err = goinvoke.Unmarshal(filepath.Join(executableBaseDir, "filename.dll"), &myDll)
+	err := goinvoke.Unmarshal(filepath.Join(utils.ExecutableDir(), "filename.dll"), &myDll)
 }
 ```
 
