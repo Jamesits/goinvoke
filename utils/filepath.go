@@ -18,7 +18,7 @@ func IsImplicitRelativePath(path string) bool {
 	return !(filepath.IsAbs(path) || strings.ContainsRune(filepath.Clean(path), filepath.Separator))
 }
 
-// ExecutableDir returns the directory containing current executable
+// ExecutableDir returns the directory containing current executable.
 func ExecutableDir() (string, error) {
 	p, err := os.Executable()
 	if err != nil {
