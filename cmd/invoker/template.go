@@ -17,8 +17,10 @@ type export struct {
 type templateData struct {
 	SelfImportPath       string
 	SelfPackageName      string
+	SelfExecutableName   string
 	SelfDocumentationURL string
-	CommandLine          []string
+	CommandLineRaw       []string
+	CommandLineCooked    []string
 
 	SelfGenerate bool
 

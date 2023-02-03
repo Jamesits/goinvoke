@@ -9,11 +9,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 const importPath = "github.com/jamesits/goinvoke"
 const selfPackageName = "goinvoke"
+const selfExecutableName = "invoker"
 const documentationURL = "https://pkg.go.dev/github.com/jamesits/goinvoke"
 
 // note: exit code conforms to sysexits.h
@@ -64,11 +66,19 @@ func main() {
 		os.Exit(78)
 	}
 
+	commandLineRaw := append([]string{selfExecutableName}, os.Args[1:]...)
+	var commandLineCooked []string
+	for _, arg := range commandLineRaw {
+		commandLineCooked = append(commandLineCooked, strconv.Quote(arg))
+	}
+
 	d := templateData{
 		SelfImportPath:       importPath,
 		SelfPackageName:      selfPackageName,
+		SelfExecutableName:   selfExecutableName,
 		SelfDocumentationURL: documentationURL,
-		CommandLine:          append([]string{"invoker"}, os.Args[1:]...),
+		CommandLineRaw:       commandLineRaw,
+		CommandLineCooked:    commandLineCooked,
 
 		SelfGenerate: selfGenerate,
 
