@@ -68,7 +68,7 @@ func main() {
 		SelfImportPath:       importPath,
 		SelfPackageName:      selfPackageName,
 		SelfDocumentationURL: documentationURL,
-		CommandLine:          os.Args,
+		CommandLine:          append([]string{"invoker"}, os.Args[1:]...),
 
 		SelfGenerate: selfGenerate,
 
