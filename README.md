@@ -48,7 +48,6 @@ func main() {
 	lpTitle := windows.UTF16PtrToString(startupInfo.Title)
 	fmt.Printf("lpTitle = %s\n", lpTitle)
 }
-
 ```
 
 See [Godoc](https://pkg.go.dev/github.com/jamesits/goinvoke) for detailed documentation.
