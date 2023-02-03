@@ -72,7 +72,7 @@ For detailed usage of `invoker` tool, run `invoker -help`.
 ## Relative Import
 
 Due to security concerns, if the path is relative and only contains a base name (e.g. `"kernel32.dll"`), file lookup
-is limited to *only* Windows system directories. 
+is limited to *only* System32 directories. 
 
 If you want to load a DLL packaged with your program, the correct way is to get the program base directory first:
 ```go
@@ -89,10 +89,17 @@ type MyDll struct {
 }
 
 func main() {
+	var err error
+	
+	programDir, err := utils.ExecutableDir()
+	if err != nil {
+		panic(err)
+    }
+	
 	myDll := MyDll{}
-	err := goinvoke.Unmarshal(filepath.Join(utils.ExecutableDir(), "filename.dll"), &myDll)
+	err = goinvoke.Unmarshal(filepath.Join(programDir, "filename.dll"), &myDll)
 }
 ```
 
-If you really want to load a DLL from your *working directory* (bad practice, strongly not recommended!), specify your 
-intention explicitly with ".\\filename.dll".
+If you really want to load a DLL from your *working directory*, specify your intention explicitly with ".\\filename.dll".
+Loading a DLL from an arbitrary working directory might lead to serious security issues. DO NOT do this unless you know exactly what you are doing.
