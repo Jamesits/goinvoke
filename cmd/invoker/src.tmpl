@@ -22,5 +22,5 @@ type {{ .TypeName }} struct {
 
 // Unmarshal loads the corresponding DLL into memory and fills export functions defined in the struct.
 func (dll *{{ .TypeName }}) Unmarshal(path string) error {
-    return {{ .SelfPackageName }}.Unmarshal(path, &dll)
+    return {{ .SelfPackageName }}.Unmarshal(path, dll)
 }
