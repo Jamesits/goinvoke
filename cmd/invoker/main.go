@@ -50,7 +50,7 @@ func main() {
 	}
 
 	if len(outputType) == 0 {
-		outputType = formatPublicType(utils.BaseName(dllPath))
+		outputType = utils.FormatPublicType(utils.BaseName(dllPath))
 	}
 
 	if len(outputFileName) == 0 {
@@ -106,7 +106,7 @@ func main() {
 
 	for _, v := range peMeta.Export.Functions {
 		d.Exports = append(d.Exports, export{
-			TypeName: formatPublicType(strings.TrimLeft(v.Name, trimPrefix)),
+			TypeName: utils.FormatPublicType(strings.TrimLeft(v.Name, trimPrefix)),
 			Function: v.Name,
 		})
 	}
