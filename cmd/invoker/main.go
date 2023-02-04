@@ -66,7 +66,12 @@ func main() {
 		os.Exit(78)
 	}
 
-	commandLineRaw := append([]string{selfExecutableName}, os.Args[1:]...)
+	artificialArgv0 := selfExecutableName
+	if preserveRealArg0 {
+		artificialArgv0 = os.Args[0]
+	}
+
+	commandLineRaw := append([]string{artificialArgv0}, os.Args[1:]...)
 	var commandLineCooked []string
 	for _, arg := range commandLineRaw {
 		commandLineCooked = append(commandLineCooked, strconv.Quote(arg))
