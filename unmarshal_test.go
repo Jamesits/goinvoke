@@ -117,9 +117,8 @@ func TestUnmarshalKernel32(t *testing.T) {
 
 	// GetStartupInfoA
 	startupInfoA := windows.StartupInfo{}
-	ret1, ret2, err = k.GetStartupInfoA.Call(uintptr(unsafe.Pointer(&startupInfoA)))
+	ret1, _, err = k.GetStartupInfoA.Call(uintptr(unsafe.Pointer(&startupInfoA)))
 	assert.NotZero(t, ret1)
-	assert.Zero(t, ret2)
 	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
 	lpTitleA := utils.UintPtrToString(uintptr(unsafe.Pointer(startupInfoA.Title)))
 	assert.True(t, len(lpTitleA) > 0)

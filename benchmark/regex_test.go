@@ -1,6 +1,7 @@
 package benchmark
 
 import (
+	"github.com/jamesits/goinvoke/utils"
 	"regexp"
 	"strings"
 	"testing"
@@ -17,8 +18,6 @@ var testSet = []string{
 
 var resultSet []string
 
-var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9]`)
-
 func BenchmarkFormatPublicType(b *testing.B) {
 	var localResultSet []string
 
@@ -26,23 +25,11 @@ func BenchmarkFormatPublicType(b *testing.B) {
 		localResultSet = []string{}
 
 		for i := 0; i < len(testSet); i++ {
-			localResultSet = append(localResultSet, formatPublicType(testSet[i]))
+			localResultSet = append(localResultSet, utils.FormatPublicType(testSet[i]))
 		}
 	}
 
 	resultSet = localResultSet
-}
-
-func formatPublicType(name string) string {
-	name = nonAlphanumericRegex.ReplaceAllString(name, "")
-
-	if unicode.IsDigit(rune(name[0])) {
-		name = "T" + name
-	} else {
-		name = strings.ToUpper(string(name[0])) + name[1:]
-	}
-
-	return name
 }
 
 var nonAlphanumericRegexRecursive = regexp.MustCompile(`[^a-zA-Z0-9]+`)
