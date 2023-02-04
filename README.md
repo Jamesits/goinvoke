@@ -68,7 +68,7 @@ invoker -dll "kernel32.dll" -generate
 go generate ./...
 ```
 
-For detailed usage of `invoker` tool, run `invoker -help`.
+For detailed usage of this tool, run `invoker -help`.
 
 ## Relative Import
 
