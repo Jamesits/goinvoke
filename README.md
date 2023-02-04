@@ -50,7 +50,7 @@ func main() {
 }
 ```
 
-See [Godoc](https://pkg.go.dev/github.com/jamesits/goinvoke) for detailed documentation.
+See [Godoc](https://pkg.go.dev/github.com/jamesits/goinvoke) for detailed documentation. Also see [Go: WindowsDLLs](https://github.com/golang/go/wiki/WindowsDLLs).
 
 # Caveats
 
