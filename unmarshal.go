@@ -3,6 +3,8 @@
 package goinvoke
 
 import (
+	"errors"
+	"github.com/hashicorp/go-multierror"
 	"github.com/jamesits/goinvoke/utils"
 	"golang.org/x/sys/windows"
 	"reflect"
@@ -18,7 +20,11 @@ func init() {
 }
 
 // Unmarshal loads the DLL into memory, then fills all struct fields with type *windows.LazyProc with exported functions.
-func Unmarshal(path string, v any) (err error) {
+func Unmarshal(path string, v any) error {
+	var err error
+	var syntheticErr = errors.New("unmarshal failed")
+	var errorOccurred = false
+
 	globalDLLReferenceCacheWriteLock.Lock()
 	defer globalDLLReferenceCacheWriteLock.Unlock()
 
@@ -31,6 +37,13 @@ func Unmarshal(path string, v any) (err error) {
 			d = windows.NewLazyDLL(path)
 		}
 		globalDllReferenceCache[path] = d
+	}
+
+	err = d.Load()
+	if err != nil {
+		errorOccurred = true
+		syntheticErr = multierror.Append(syntheticErr, err)
+		return syntheticErr
 	}
 
 	// https://stackoverflow.com/a/46354875
@@ -54,12 +67,24 @@ func Unmarshal(path string, v any) (err error) {
 			continue
 		}
 
+		proc := d.NewProc(tag)
+		// try to load the proc now
+		err = proc.Find()
+		if err != nil {
+			errorOccurred = true
+			syntheticErr = multierror.Append(syntheticErr, err)
+			continue
+		}
+
 		// https://stackoverflow.com/a/53110731
-		valueField.Set(reflect.ValueOf(d.NewProc(tag)).Convert(valueField.Type()))
+		valueField.Set(reflect.ValueOf(proc).Convert(valueField.Type()))
 	}
 
-	err = d.Load()
-	return
+	if errorOccurred {
+		return syntheticErr
+	}
+
+	return nil
 }
 
 // getStructTag returns the value of a named tag of a struct member
