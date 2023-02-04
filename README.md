@@ -104,3 +104,19 @@ func main() {
 
 If you really want to load a DLL from your *working directory*, specify your intention explicitly with `".\\filename.dll"`.
 Loading a DLL from an arbitrary working directory might lead to serious security issues. DO NOT do this unless you know exactly what you are doing.
+
+## Performance
+
+`syscall.Syscall` is somewhat slower due to it allocates heap twice more than a cgo call (variable length arguments, and another copy inside `syscall.Syscall()`). There is a `benchmark` package to test the performance of both methods. Example result under Go 1.19.1:
+
+```text
+goos: windows
+goarch: amd64
+pkg: github.com/jamesits/goinvoke/benchmark
+cpu: AMD Ryzen 9 5900X 12-Core Processor
+BenchmarkSyscallIsDebuggerPresent
+BenchmarkSyscallIsDebuggerPresent-24            29967184                40.49 ns/op
+BenchmarkCgoIsDebuggerPresent
+BenchmarkCgoIsDebuggerPresent-24                40003599                29.06 ns/op
+PASS
+```
