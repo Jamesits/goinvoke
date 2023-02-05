@@ -107,7 +107,7 @@ Loading a DLL from an arbitrary working directory might lead to serious security
 
 ## Performance
 
-`syscall.Syscall` is somewhat slower due to it allocates heap twice more than a cgo call (variable length arguments, and another copy inside `syscall.Syscall()`). There is a `benchmark` package to test the performance of both methods. Example result under Go 1.19.1:
+`syscall.Syscall` is somewhat slower due to it allocating heap twice more than a cgo call (variable length arguments, and another copy inside `syscall.Syscall()`). There is a `benchmark` package to test the performance of both methods. Example result under Go 1.19.1:
 
 ```text
 goos: windows
