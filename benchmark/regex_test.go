@@ -2,9 +2,30 @@ package benchmark
 
 import (
 	"github.com/jamesits/goinvoke/utils"
+	"testing"
+)
+
+/*
+https://gosamples.dev/remove-non-alphanumeric/ offers an example of using regex `[^a-zA-Z0-9]+` to remove all the
+non-alphanumeric characters from a string. I think it can be optimized by simply removing the `+` from the regex
+eliminating the recursive lookup. But at that time I'm not sure how much of an improvement this small change
+would bring.
+
+Now I know.
+
+goos: windows
+goarch: amd64
+pkg: github.com/jamesits/goinvoke/benchmark
+cpu: AMD Ryzen 9 5900X 12-Core Processor
+BenchmarkFormatPublicType
+BenchmarkFormatPublicType-24                      179103              6502 ns/op
+BenchmarkFormatPublicTypeRecursive
+BenchmarkFormatPublicTypeRecursive-24             206896              5737 ns/op
+*/
+
+import (
 	"regexp"
 	"strings"
-	"testing"
 	"unicode"
 )
 

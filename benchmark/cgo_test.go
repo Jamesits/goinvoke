@@ -1,5 +1,7 @@
 package benchmark
 
+// performance comparison: cgo vs (*windows.LazyProc).Call()
+
 import (
 	"github.com/jamesits/goinvoke"
 	"golang.org/x/sys/windows"
