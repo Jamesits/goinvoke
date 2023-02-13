@@ -1,3 +1,5 @@
+//go:build cgo
+
 package benchmark
 
 // performance comparison: cgo vs (*windows.LazyProc).Call()
