@@ -176,9 +176,9 @@ func main() {
 
 	s := shlwapi{}
 	err = goinvoke.Unmarshal("shlwapi.dll", &s)
-    if err != nil {
+	if err != nil {
 		panic(err)
-    }
+	}
 	
 	// ...
 }
