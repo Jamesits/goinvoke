@@ -7,7 +7,9 @@ import (
 	"github.com/jamesits/goinvoke/utils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/sys/windows"
+	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"unsafe"
 )
@@ -64,6 +66,26 @@ type kernel32 struct {
 	SetErrorMode    *windows.LazyProc
 	GetStartupInfoW *windows.LazyProc
 	GetStartupInfoA *windows.LazyProc
+	GetSystemInfo   *windows.LazyProc
+}
+
+// value mapping from runtime.GOARCH to SystemInfo.wProcessorArchitecture
+// https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/ns-sysinfoapi-system_info
+var processorArchitectureMap = map[string]uint16{
+	"386":   0,
+	"arm":   5,
+	"ia64":  6, // not really useful, for completeness only
+	"amd64": 9,
+	"arm64": 12,
+}
+
+func processorArchitecture() uint16 {
+	ret, ok := processorArchitectureMap[runtime.GOARCH]
+	if !ok {
+		return 0xFFFF
+	}
+
+	return ret
 }
 
 func TestUnmarshalKernel32(t *testing.T) {
@@ -115,7 +137,7 @@ func TestUnmarshalKernel32(t *testing.T) {
 	lpDesktopW := windows.UTF16PtrToString(startupInfoW.Desktop)
 	assert.EqualValues(t, "Winsta0\\Default", lpDesktopW)
 
-	// GetStartupInfoA
+	// GetStartupInfoA does too, but returns ASCII strings
 	startupInfoA := windows.StartupInfo{}
 	ret1, _, err = k.GetStartupInfoA.Call(uintptr(unsafe.Pointer(&startupInfoA)))
 	assert.NotZero(t, ret1)
@@ -124,6 +146,18 @@ func TestUnmarshalKernel32(t *testing.T) {
 	assert.True(t, len(lpTitleA) > 0)
 	lpDesktopA := utils.UintPtrToString(uintptr(unsafe.Pointer(startupInfoA.Desktop)))
 	assert.EqualValues(t, "Winsta0\\Default", lpDesktopA)
+
+	// It's not always that you can construct a struct in Golang that matches a certain struct in C in the terms of
+	// memory layout. Memory layout of a certain struct might change if your code runs on different architecture as well.
+	// Here we demonstrate how to use a byte buffer to hold the returned struct, then decode it with known offsets.
+	systemInfo := make([]byte, 64) // size is arbitrary; just make sure it is large enough
+	ret1, _, err = k.GetSystemInfo.Call(uintptr(unsafe.Pointer(&systemInfo[0])))
+	assert.Zero(t, ret1)
+	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
+	wProcessorArchitecture := utils.HostByteOrder.Uint16(systemInfo[0:2])
+	assert.EqualValues(t, processorArchitecture(), wProcessorArchitecture)
+	dwPageSize := utils.HostByteOrder.Uint32(systemInfo[4:8])
+	assert.EqualValues(t, os.Getpagesize(), dwPageSize)
 }
 
 func TestFileMissing(t *testing.T) {
