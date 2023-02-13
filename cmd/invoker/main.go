@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"github.com/jamesits/goinvoke/utils"
 	"github.com/saferwall/pe"
 	"go/format"
@@ -105,8 +106,16 @@ func main() {
 	}
 
 	for _, v := range peMeta.Export.Functions {
+		var typeName string
+		if v.Name == "" {
+			typeName = fmt.Sprintf("Ord%d", v.Ordinal)
+		} else {
+			typeName = utils.FormatPublicType(strings.TrimLeft(v.Name, trimPrefix))
+		}
+
 		d.Exports = append(d.Exports, export{
-			TypeName: utils.FormatPublicType(strings.TrimLeft(v.Name, trimPrefix)),
+			TypeName: typeName,
+			Ordinal:  v.Ordinal,
 			Function: v.Name,
 		})
 	}

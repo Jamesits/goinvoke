@@ -11,6 +11,7 @@ var srcTemplate = template.Must(template.New("").Parse(srcTemplateString))
 
 type export struct {
 	TypeName string
+	Ordinal  uint32
 	Function string
 }
 

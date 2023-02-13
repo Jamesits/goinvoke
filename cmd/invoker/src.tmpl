@@ -17,7 +17,11 @@ import (
 // {{ .TypeName }} contains all exports from "{{ .DllFileName }}".
 type {{ .TypeName }} struct {
     {{ range $a := .Exports -}}
-    {{$a.TypeName}} *windows.LazyProc `func:"{{$a.Function}}"`
+    {{- if eq $a.Function "" -}}
+    {{ $a.TypeName }} *windows.Proc `ordinal:"{{- $a.Ordinal -}}"`
+    {{- else -}}
+    {{ $a.TypeName }} *windows.LazyProc `func:"{{- $a.Function -}}"`
+    {{- end }}
     {{ end -}}
 }
 

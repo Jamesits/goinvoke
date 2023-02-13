@@ -14,50 +14,7 @@ import (
 	"unsafe"
 )
 
-// unmarshal tests
-type user32 struct {
-	// field that should not be touched
-	RandomField int
-
-	// no tag, use field name to match function
-	MessageBoxA *windows.LazyProc
-
-	// tag overrides field name
-	MessageBox *windows.LazyProc `func:"MessageBoxW"`
-
-	// private fields should not be touched
-	gks *windows.LazyProc `func:"GetKeyState"`
-}
-
-func TestUnmarshalUser32(t *testing.T) {
-	var err error
-
-	u := user32{
-		RandomField: 0,
-	}
-	assert.Nil(t, u.MessageBoxA)
-
-	sd, err := utils.GetSystemDirectory()
-	assert.NoError(t, err)
-
-	user32Dll := filepath.Join(sd, "user32.dll")
-
-	err = Unmarshal(user32Dll, &u)
-	assert.NoError(t, err)
-
-	// should use insecure search order since we specified an absolute path
-	assert.False(t, globalDllReferenceCache[user32Dll].System)
-
-	assert.Zero(t, u.RandomField)
-
-	assert.NotNil(t, u.MessageBoxA)
-	assert.NotNil(t, u.MessageBox)
-	assert.NotEqualValues(t, u.MessageBoxA, u.MessageBox)
-
-	assert.Nil(t, u.gks)
-}
-
-// sanity tests
+// sanity tests, plus some demonstration of how to use this library
 // some unit tests are from https://github.com/dotnet/pinvoke/blob/c01077e0511e6cec6d860b3373ca2a60ba7cbcae/test/Kernel32.Tests/Kernel32Facts.cs
 type kernel32 struct {
 	GetTickCount    *windows.LazyProc
@@ -99,7 +56,7 @@ func TestUnmarshalKernel32(t *testing.T) {
 	assert.NoError(t, err)
 
 	// should use secure search order
-	assert.True(t, globalDllReferenceCache[kernel32Dll].System)
+	assert.True(t, lazyDLLReferenceCache[kernel32Dll].System)
 
 	// GetTicketCount should return a non-zero value
 	ret1, ret2, err = k.GetTickCount.Call()
@@ -159,6 +116,90 @@ func TestUnmarshalKernel32(t *testing.T) {
 	assert.EqualValues(t, processorArchitecture(), wProcessorArchitecture)
 	dwPageSize := utils.HostByteOrder.Uint32(systemInfo[4:8])
 	assert.EqualValues(t, os.Getpagesize(), dwPageSize)
+}
+
+// unmarshal tests for windows.LazyProc
+type user32 struct {
+	// no tag, use field name to match function
+	MessageBoxA *windows.LazyProc
+
+	// tag overrides field name
+	MessageBox *windows.LazyProc `func:"MessageBoxW"`
+
+	// == private fields ===
+	// should not be touched in any way
+	RandomField int
+	gks         *windows.LazyProc `func:"GetKeyState"`
+}
+
+func TestUnmarshalUser32(t *testing.T) {
+	var err error
+
+	u := user32{
+		RandomField: 0,
+	}
+	assert.Nil(t, u.MessageBoxA)
+
+	sd, err := utils.GetSystemDirectory()
+	assert.NoError(t, err)
+
+	user32Dll := filepath.Join(sd, "user32.dll")
+
+	err = Unmarshal(user32Dll, &u)
+	assert.NoError(t, err)
+
+	// should use insecure search order since we specified an absolute path
+	assert.False(t, lazyDLLReferenceCache[user32Dll].System)
+
+	// LazyProc
+	assert.NotNil(t, u.MessageBoxA)
+	assert.NotNil(t, u.MessageBox)
+	assert.NotEqualValues(t, u.MessageBoxA.Addr(), u.MessageBox.Addr())
+
+	// sanity checks
+	assert.Zero(t, u.RandomField)
+	assert.Nil(t, u.gks)
+}
+
+// unmarshal tests for windows.Proc
+// test data from: https://github.com/golang/go/issues/16507
+// https://learn.microsoft.com/en-us/windows/win32/api/shlwapi/nf-shlwapi-shcreatememstream#remarks
+type shlwapi struct {
+	// no tag, use field name to match function
+	// works only on Windows Vista or later
+	SHCreateMemStream *windows.Proc
+
+	// only function tag
+	SHCreateMemStreamByFunc *windows.Proc `func:"SHCreateMemStream"`
+
+	// you can also import functions by its ordinal
+	SHCreateMemStreamByOrdinal *windows.Proc `ordinal:"12"`
+
+	// ordinal, if defined, always takes precedence
+	SHCreateMemStreamTestOrdinalOverride  *windows.Proc `ordinal:"12" func:"SHCreateStreamOnFileEx"`
+	SHCreateMemStreamTestOrdinalOverride2 *windows.Proc `func:"FunctionThatDoesNotExistAtAll" ordinal:"12"`
+}
+
+func TestUnmarshalShlwapi(t *testing.T) {
+	var err error
+
+	s := shlwapi{}
+
+	err = Unmarshal("shlwapi.dll", &s)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, s.SHCreateMemStream)
+
+	assert.NotNil(t, s.SHCreateMemStreamByFunc)
+	assert.EqualValues(t, s.SHCreateMemStream.Addr(), s.SHCreateMemStreamByFunc.Addr())
+
+	assert.NotNil(t, s.SHCreateMemStreamByOrdinal)
+	assert.EqualValues(t, s.SHCreateMemStream.Addr(), s.SHCreateMemStreamByOrdinal.Addr())
+
+	assert.NotNil(t, s.SHCreateMemStreamTestOrdinalOverride)
+	assert.EqualValues(t, s.SHCreateMemStream.Addr(), s.SHCreateMemStreamTestOrdinalOverride.Addr())
+	assert.NotNil(t, s.SHCreateMemStreamTestOrdinalOverride2)
+	assert.EqualValues(t, s.SHCreateMemStream.Addr(), s.SHCreateMemStreamTestOrdinalOverride2.Addr())
 }
 
 func TestFileMissing(t *testing.T) {
