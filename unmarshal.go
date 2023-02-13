@@ -9,20 +9,10 @@ import (
 	"golang.org/x/sys/windows"
 	"reflect"
 	"strconv"
-	"sync"
 )
 
 var typeOfLazyProc = reflect.TypeOf((*windows.LazyProc)(nil))
 var typeOfProc = reflect.TypeOf((*windows.Proc)(nil))
-
-var lazyDLLReferenceCache map[string]*windows.LazyDLL
-var dllReferenceCache map[string]*windows.DLL
-var globalDLLReferenceCacheWriteLock sync.Mutex
-
-func init() {
-	lazyDLLReferenceCache = map[string]*windows.LazyDLL{}
-	dllReferenceCache = map[string]*windows.DLL{}
-}
 
 // Unmarshal loads the DLL into memory, then fills all struct fields with type *windows.LazyProc with exported functions.
 func Unmarshal(path string, v any) error {
@@ -30,18 +20,11 @@ func Unmarshal(path string, v any) error {
 	var syntheticErr = errors.New("unmarshal failed")
 	var errorOccurred = false
 
-	globalDLLReferenceCacheWriteLock.Lock()
-	defer globalDLLReferenceCacheWriteLock.Unlock()
-
-	// If multiple Unmarshal() is called with the same path string, the reference to the DLL will be cached.
-	ld, ok := lazyDLLReferenceCache[path]
-	if !ok {
-		if utils.IsImplicitRelativePath(path) {
-			ld = windows.NewLazySystemDLL(path)
-		} else {
-			ld = windows.NewLazyDLL(path)
-		}
-		lazyDLLReferenceCache[path] = ld
+	var ld *windows.LazyDLL
+	if utils.IsImplicitRelativePath(path) {
+		ld = windows.NewLazySystemDLL(path)
+	} else {
+		ld = windows.NewLazyDLL(path)
 	}
 
 	err = ld.Load()
@@ -52,13 +35,9 @@ func Unmarshal(path string, v any) error {
 	}
 
 	// create a corresponding windows.Dll object for compatibility
-	d, ok := dllReferenceCache[path]
-	if !ok {
-		d = &windows.DLL{
-			Name:   ld.Name,
-			Handle: windows.Handle(ld.Handle()),
-		}
-		dllReferenceCache[path] = d
+	d := &windows.DLL{
+		Name:   ld.Name,
+		Handle: windows.Handle(ld.Handle()),
 	}
 
 	// https://stackoverflow.com/a/46354875

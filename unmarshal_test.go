@@ -55,9 +55,6 @@ func TestUnmarshalKernel32(t *testing.T) {
 	err = Unmarshal(kernel32Dll, &k)
 	assert.NoError(t, err)
 
-	// should use secure search order
-	assert.True(t, lazyDLLReferenceCache[kernel32Dll].System)
-
 	// GetTicketCount should return a non-zero value
 	ret1, ret2, err = k.GetTickCount.Call()
 	assert.NotZero(t, ret1)
@@ -147,9 +144,6 @@ func TestUnmarshalUser32(t *testing.T) {
 
 	err = Unmarshal(user32Dll, &u)
 	assert.NoError(t, err)
-
-	// should use insecure search order since we specified an absolute path
-	assert.False(t, lazyDLLReferenceCache[user32Dll].System)
 
 	// LazyProc
 	assert.NotNil(t, u.MessageBoxA)
