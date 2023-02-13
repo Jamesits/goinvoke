@@ -20,7 +20,7 @@ var dwData = uintptr(114514)
 var callbackDataValidated = true
 
 //export MonitorEnumProcCallback
-func MonitorEnumProcCallback(_ C.uintptr_t, _ C.uintptr_t, _ C.uintptr_t, unnamedParam4 C.uintptr_t) C.bool {
+func MonitorEnumProcCallback(unnamedParam1 C.uintptr_t, unnamedParam2 C.uintptr_t, unnamedParam3 C.uintptr_t, unnamedParam4 C.uintptr_t) C.bool {
 	if uintptr(unnamedParam4) != dwData {
 		callbackDataValidated = false
 		return C.bool(false)
