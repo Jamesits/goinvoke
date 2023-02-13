@@ -69,7 +69,7 @@ type kernel32 struct {
 	GetSystemInfo   *windows.LazyProc
 }
 
-// value mapping from runtime.GOARCH to SystemInfo.wProcessorArchitecture
+// value mapping from runtime.GOARCH to LPSYSTEM_INFO.wProcessorArchitecture
 // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/ns-sysinfoapi-system_info
 var processorArchitectureMap = map[string]uint16{
 	"386":   0,
