@@ -10,6 +10,9 @@ same set of functions.
 
 ## Usage
 
+Simply define a struct with attributes in the type of `*windows.LazyProc` or `*windows.Proc`, and call 
+`goinvoke.Unmarshal("path/to/file.dll", pointerToStruct)`.
+
 ```go
 package main
 
@@ -54,7 +57,8 @@ func main() {
 
 For more examples of using this library, [`unmarshal_test.go`](unmarshal_test.go) is a good start point. 
 [Go: WindowsDLLs](https://github.com/golang/go/wiki/WindowsDLLs) also offers a great view of using 
-the `(*windows.LazyProc).Call()` method.
+the `(*windows.LazyProc).Call()` method. If you need to define callback functions, see [`cgo_callback_main.go`](internal/test/cgo_callback_main.go) 
+for an example. 
 
 ## Type Generator
 
@@ -148,6 +152,37 @@ field is `nil` as an indicator of exported function existence of your loaded DLL
 
 If you really want to decode individual errors, use `err.(*multierror.Error).Errors`. There are some examples 
 in [`unmarshal_test.go`](unmarshal_test.go).
+
+## Importing Functions by Ordinal
+
+Importing functions by ordinal is fully supported, just use `*windows.Proc` and add a `ordinal` tag. The `ordinal` tag, 
+if exists, always overrides the `func` tag.
+
+```go
+package main
+
+import (
+	"github.com/jamesits/goinvoke"
+	"golang.org/x/sys/windows"
+)
+
+type shlwapi struct {
+	// function definition compatible with Windows XP or earlier
+	SHCreateMemStream *windows.Proc `ordinal:"12"`
+}
+
+func main() {
+	var err error
+
+	s := shlwapi{}
+	err = goinvoke.Unmarshal("shlwapi.dll", &s)
+    if err != nil {
+		panic(err)
+    }
+	
+	// ...
+}
+```
 
 ## Performance
 
