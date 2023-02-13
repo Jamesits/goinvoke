@@ -151,8 +151,9 @@ func TestUnmarshalKernel32(t *testing.T) {
 	// memory layout. Memory layout of a certain struct might change if your code runs on different architecture as well.
 	// Here we demonstrate how to use a byte buffer to hold the returned struct, then decode it with known offsets.
 	systemInfo := make([]byte, 64) // size is arbitrary; just make sure it is large enough
-	ret1, _, err = k.GetSystemInfo.Call(uintptr(unsafe.Pointer(&systemInfo[0])))
+	ret1, ret2, err = k.GetSystemInfo.Call(uintptr(unsafe.Pointer(&systemInfo[0])))
 	assert.Zero(t, ret1)
+	assert.Zero(t, ret2)
 	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
 	wProcessorArchitecture := utils.HostByteOrder.Uint16(systemInfo[0:2])
 	assert.EqualValues(t, processorArchitecture(), wProcessorArchitecture)
