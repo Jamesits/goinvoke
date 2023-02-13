@@ -15,7 +15,7 @@ Now I know.
 
 goos: windows
 goarch: amd64
-pkg: github.com/jamesits/goinvoke/benchmark
+pkg: github.com/jamesits/goinvoke/internal/benchmark
 cpu: AMD Ryzen 9 5900X 12-Core Processor
 BenchmarkFormatPublicType
 BenchmarkFormatPublicType-24                      179103              6502 ns/op

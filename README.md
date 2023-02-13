@@ -158,7 +158,7 @@ Example result under Go 1.19.1:
 ```text
 goos: windows
 goarch: amd64
-pkg: github.com/jamesits/goinvoke/benchmark
+pkg: github.com/jamesits/goinvoke/internal/benchmark
 cpu: AMD Ryzen 9 5900X 12-Core Processor
 BenchmarkSyscallIsDebuggerPresent
 BenchmarkSyscallIsDebuggerPresent-24            29967184                40.49 ns/op

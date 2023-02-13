@@ -5,8 +5,11 @@ import (
 	"unsafe"
 )
 
+// HostByteOrder is the native byte order of the local CPU. Value is determined at run time.
 var HostByteOrder binary.ByteOrder
-var NetworkByteOrder = binary.BigEndian
+
+// NetworkByteOrder is the byte order used on networks, defined by RFC1700
+var NetworkByteOrder binary.ByteOrder = binary.BigEndian
 
 func init() {
 	// dynamically detect the host's byte order
