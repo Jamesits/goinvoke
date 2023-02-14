@@ -10,7 +10,7 @@ same set of functions.
 
 ## Usage
 
-Simply define a struct with attributes in the type of `*windows.LazyProc` or `*windows.Proc`, and call 
+Simply define a struct with attributes in the type of `*windows.Proc` or `*windows.LazyProc`, and call 
 `goinvoke.Unmarshal("path/to/file.dll", pointerToStruct)`.
 
 ```go
@@ -24,10 +24,10 @@ import (
 )
 
 type Kernel32 struct {
-	GetTickCount *windows.LazyProc
+	GetTickCount *windows.Proc
 
 	// you can override the function name with a tag
-	GetStartupInfo *windows.LazyProc `func:"GetStartupInfoW"`
+	GetStartupInfo *windows.Proc `func:"GetStartupInfoW"`
 }
 
 func main() {
@@ -57,7 +57,7 @@ func main() {
 
 For more examples of using this library, [`unmarshal_test.go`](unmarshal_test.go) is a good start point. 
 [Go: WindowsDLLs](https://github.com/golang/go/wiki/WindowsDLLs) also offers a great view of using 
-the `(*windows.LazyProc).Call()` method. If you need to define callback functions, see [`cgo_callback_main.go`](internal/test/cgo_callback_main.go) 
+the `(*windows.Proc).Call()` method. If you need to define callback functions, see [`cgo_callback_main.go`](internal/test/cgo_callback_main.go) 
 for an example. 
 
 ## Type Generator
@@ -184,11 +184,13 @@ func main() {
 }
 ```
 
+`*windows.LazyProc` does not support a `ordinal` tag.
+
 ## Performance
 
 `syscall.Syscall` is somewhat slower due to it allocating heap twice more than a cgo call (variable length arguments, 
 and another copy inside `syscall.Syscall()`). There is a `internal/benchmark` package to compare the performance of 
-`windows.Proc`, `windows.LazyProc` and cgo. 
+`*windows.Proc`, `*windows.LazyProc` and cgo. 
 Example result under Go 1.19.1:
 
 ```text
