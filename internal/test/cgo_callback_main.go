@@ -109,6 +109,7 @@ func MonitorEnumProcCallback(hMonitor C.uintptr_t, hDC C.uintptr_t, lpRect C.uin
 	rectSliceHeader.Data = uintptr(lpRect)
 
 	// converts a C pointer to a cgo struct pointer
+	// the struct definition is in "common.h"
 	rectCStruct := (*C.struct_rect)(unsafe.Pointer(uintptr(lpRect)))
 
 	monitor := monitor{
