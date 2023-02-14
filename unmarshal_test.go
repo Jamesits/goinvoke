@@ -26,20 +26,35 @@ type kernel32 struct {
 	GetSystemInfo   *windows.Proc
 }
 
-// value mapping from runtime.GOARCH to SYSTEM_INFO.wProcessorArchitecture
-// https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/ns-sysinfoapi-system_info
+// value mapping from runtime.GOARCH (plus some non-existent ones) to SYSTEM_INFO.wProcessorArchitecture
+// Note: some values are not really useful, they are here for completeness only
+// References:
+// - https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/ns-sysinfoapi-system_info
+// - https://learn.microsoft.com/en-us/previous-versions/ms942639(v=msdn.10)
+// - Winnt.h
 var processorArchitectureMap = map[string]uint16{
-	"386":   0,
-	"arm":   5,
-	"ia64":  6, // not really useful, for completeness only
-	"amd64": 9,
-	"arm64": 12,
+	"386":        0,
+	"mips":       1,
+	"alpha":      2,
+	"ppc":        3,
+	"shx":        4,
+	"arm":        5,
+	"ia64":       6,
+	"alpha64":    7,
+	"msil":       8,
+	"amd64":      9,
+	"amd64p32":   10,
+	"neutral":    11,
+	"arm64":      12,
+	"arm32win64": 13,
+	"ia32arm64":  14,
+	"unknown":    0xFFFF, // -1 in int16
 }
 
 func processorArchitecture() uint16 {
 	ret, ok := processorArchitectureMap[runtime.GOARCH]
 	if !ok {
-		return 0xFFFF
+		return processorArchitectureMap["unknown"]
 	}
 
 	return ret
