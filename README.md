@@ -11,7 +11,7 @@ same set of functions.
 ## Usage
 
 Simply define a struct with attributes in the type of `*windows.Proc` or `*windows.LazyProc`, and call 
-`goinvoke.Unmarshal("path/to/file.dll", pointerToStruct)`.
+`goinvoke.Unmarshal("path\\to\\file.dll", pointerToStruct)`.
 
 ```go
 package main
