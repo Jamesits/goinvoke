@@ -187,7 +187,8 @@ func main() {
 ## Performance
 
 `syscall.Syscall` is somewhat slower due to it allocating heap twice more than a cgo call (variable length arguments, 
-and another copy inside `syscall.Syscall()`). There is a `internal/benchmark` package to test the performance of both methods. 
+and another copy inside `syscall.Syscall()`). There is a `internal/benchmark` package to compare the performance of 
+`windows.Proc`, `windows.LazyProc` and cgo. 
 Example result under Go 1.19.1:
 
 ```text
@@ -196,8 +197,10 @@ goarch: amd64
 pkg: github.com/jamesits/goinvoke/internal/benchmark
 cpu: AMD Ryzen 9 5900X 12-Core Processor
 BenchmarkSyscallIsDebuggerPresent
-BenchmarkSyscallIsDebuggerPresent-24            29967184                40.49 ns/op
+BenchmarkSyscallIsDebuggerPresent-24            30003824                38.32 ns/op
+BenchmarkSyscallIsDebuggerPresentLazy
+BenchmarkSyscallIsDebuggerPresentLazy-24        29269077                41.75 ns/op
 BenchmarkCgoIsDebuggerPresent
-BenchmarkCgoIsDebuggerPresent-24                40003599                29.06 ns/op
+BenchmarkCgoIsDebuggerPresent-24                41355494                30.92 ns/op
 PASS
 ```
