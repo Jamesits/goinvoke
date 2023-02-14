@@ -5,8 +5,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// C gateway function
-extern bool monitor_enum_proc_callback(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
+struct rect {
+	int32_t left;
+	int32_t top;
+	int32_t right;
+	int32_t bottom;
+};
 
 // Golang exported function
 extern bool MonitorEnumProcCallback(uintptr_t, uintptr_t, uintptr_t, uintptr_t);

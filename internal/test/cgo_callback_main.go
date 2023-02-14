@@ -16,23 +16,65 @@ import (
 	"github.com/mattn/go-pointer"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/sys/windows"
+	"reflect"
 	"testing"
 	"unsafe"
 )
 
-type user32 struct {
-	EnumDisplayMonitors *windows.LazyProc
+type shcore struct {
+	SetProcessDpiAwareness *windows.LazyProc
 }
 
+var Shcore = shcore{}
+
+type user32 struct {
+	EnumDisplayMonitors           *windows.LazyProc
+	SetProcessDPIAware            *windows.LazyProc
+	SetProcessDpiAwarenessContext *windows.LazyProc
+}
+
+var User32 = user32{}
+
+func init() {
+	var err error
+
+	err = goinvoke.Unmarshal("shcore.dll", &Shcore)
+	if err != nil {
+		panic(err)
+	}
+
+	err = goinvoke.Unmarshal("user32.dll", &User32)
+	if err != nil {
+		panic(err)
+	}
+}
+
+type ProcessDPIAwareness uintptr
+
+const (
+	ProcessDPIUnaware         ProcessDPIAwareness = 0
+	ProcessSystemDPIAware     ProcessDPIAwareness = 1
+	ProcessPerMonitorDPIAware ProcessDPIAwareness = 2
+)
+
+type DPIAwarenessContext uintptr
+
+const (
+	DPIAwarenessContextUnaware           DPIAwarenessContext = 16
+	DPIAwarenessContextSystemAware       DPIAwarenessContext = 17
+	DPIAwarenessContextPerMonitorAware   DPIAwarenessContext = 18
+	DPIAwarenessContextPerMonitorAwareV2 DPIAwarenessContext = 34
+)
+
 type rect struct {
-	left   uint32
-	top    uint32
-	right  uint32
-	bottom uint32
+	left   int32
+	top    int32
+	right  int32
+	bottom int32
 }
 
 func (r rect) String() string {
-	return fmt.Sprintf("from %dx%d to %dx%d", r.top, r.left, r.bottom, r.right)
+	return fmt.Sprintf("from %dx%d to %dx%d (size %dx%d)", r.left, r.top, r.right, r.bottom, r.right-r.left, r.bottom-r.top)
 }
 
 type monitor struct {
@@ -45,18 +87,41 @@ func (m monitor) String() string {
 	return fmt.Sprintf("hMonitor = 0x%x, hDC = 0x%x, rect = %s", m.hMonitor, m.hDeviceContext, m.rect)
 }
 
+// MonitorEnumProcCallback is our callback function which will be called from the DLL.
+// Cgo note:
+// Using //export in a file places a restriction on the preamble: since it is copied into two different C output files,
+// it must not contain any definitions, only declarations. If a file contains both definitions and declarations, then
+// the two output files will produce duplicate symbols and the linker will fail. To avoid this, definitions must be
+// placed in preambles in other files, or in C source files.
+// References:
+// - https://groups.google.com/g/golang-nuts/c/yaP27124ly8/m/qiajGsLEBAAJ
+// - https://pkg.go.dev/cmd/cgo#hdr-C_references_to_Go
+//
 //export MonitorEnumProcCallback
-func MonitorEnumProcCallback(unnamedParam1 C.uintptr_t, unnamedParam2 C.uintptr_t, unnamedParam3 C.uintptr_t, unnamedParam4 C.uintptr_t) C.bool {
-	monitors := pointer.Restore(unsafe.Pointer(uintptr(unnamedParam4))).(*[]monitor)
+func MonitorEnumProcCallback(hMonitor C.uintptr_t, hDC C.uintptr_t, lpRect C.uintptr_t, dwData C.uintptr_t) C.bool {
+	monitors := pointer.Restore(unsafe.Pointer(uintptr(dwData))).(*[]monitor)
+
+	// converts a C pointer to an array into a Golang slice
+	var rectSlice []int32
+	rectSliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&rectSlice))
+	rectSliceHeader.Cap = 4
+	rectSliceHeader.Len = 4
+	rectSliceHeader.Data = uintptr(lpRect)
+
+	// converts a C pointer to a cgo struct pointer
+	rectCStruct := (*C.struct_rect)(unsafe.Pointer(uintptr(lpRect)))
 
 	monitor := monitor{
-		hMonitor:       uintptr(unnamedParam1),
-		hDeviceContext: uintptr(unnamedParam2),
-		rect: rect{ // TODO: fill RECT
-			left:   0,
-			top:    0,
-			right:  0,
-			bottom: 0,
+		hMonitor:       uintptr(hMonitor),
+		hDeviceContext: uintptr(hDC),
+		rect: rect{
+			// you can access values by pure pointer algorithm
+			left: *(*int32)(unsafe.Pointer(uintptr(lpRect))),
+			top:  *(*int32)(unsafe.Pointer(uintptr(lpRect) + 4)),
+			// or cast the pointer into a Golang slice
+			right: rectSlice[2],
+			// or convert it into a C struct and access its member
+			bottom: int32(rectCStruct.bottom),
 		},
 	}
 
@@ -64,20 +129,46 @@ func MonitorEnumProcCallback(unnamedParam1 C.uintptr_t, unnamedParam2 C.uintptr_
 	return C.bool(true)
 }
 
+// SetProcessDpiAwareness enables per-monitor DPI awareness V2. If successful, returns true; otherwise returns false.
+// References:
+// - https://stackoverflow.com/a/43537991
+// - https://github.com/anaisbetts/PerMonitorDpi/blob/63570f78d9a3ff032bcd0d8a50169af1a57c2090/SafeNativeMethods.cs
+func SetProcessDpiAwareness() bool {
+	// https://stackoverflow.com/a/75074215
+	major, minor, revision := windows.RtlGetNtVersionNumbers()
+
+	if major >= 10 && minor >= 0 && revision >= 15063 {
+		// per-monitor DPI awareness V2
+		ret, _, _ := User32.SetProcessDpiAwarenessContext.Call(uintptr(DPIAwarenessContextPerMonitorAwareV2))
+		return ret != 0 // function returns bool
+	} else if major >= 6 && minor >= 3 && revision >= 0 {
+		// per-monitor DPI awareness
+		ret, _, _ := Shcore.SetProcessDpiAwareness.Call(uintptr(ProcessPerMonitorDPIAware))
+		return ret == 0 // function returns HRESULT
+	} else {
+		ret, _, _ := User32.SetProcessDPIAware.Call()
+		return ret != 0 // function returns bool
+	}
+}
+
 func EnumDisplayMonitors(t *testing.T) {
 	var err error
 
-	u := user32{}
-	err = goinvoke.Unmarshal("user32.dll", &u)
-	assert.NoError(t, err)
+	awarenessRet := SetProcessDpiAwareness()
+	assert.EqualValues(t, true, awarenessRet)
 
+	// Have to use a pointer here, because we are going to append to the slice in the callback function, and slice
+	// address might change
+	// References:
+	// - https://www.tugberkugurlu.com/archive/working-with-slices-in-go-golang-understanding-how-append-copy-and-slicing-syntax-work#how-append-and-copy-works
+	// - https://stackoverflow.com/questions/54195834/how-to-inspect-slice-header/54196005
 	monitors := &[]monitor{}
 
-	_, _, err = u.EnumDisplayMonitors.Call(
-		uintptr(0),                            // hdc = NULL
-		uintptr(0),                            // lprcClip = NULL
-		uintptr(C.monitor_enum_proc_callback), // lpfnEnum
-		uintptr(pointer.Save(monitors)),       // dwData
+	_, _, err = User32.EnumDisplayMonitors.Call(
+		uintptr(0),                         // hdc = NULL
+		uintptr(0),                         // lprcClip = NULL
+		uintptr(C.MonitorEnumProcCallback), // lpfnEnum
+		uintptr(pointer.Save(monitors)),    // dwData
 	)
 
 	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
