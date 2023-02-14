@@ -102,6 +102,10 @@ func MonitorEnumProcCallback(hMonitor C.uintptr_t, hDC C.uintptr_t, lpRect C.uin
 	monitors := pointer.Restore(unsafe.Pointer(uintptr(dwData))).(*[]monitor)
 
 	// converts a C pointer to an array into a Golang slice
+	// References:
+	// - https://github.com/golang/go/issues/41705
+	// - https://pkg.go.dev/unsafe#Pointer
+	// - https://utcc.utoronto.ca/~cks/space/blog/programming/GoMemoryToStructures
 	var rectSlice []int32
 	rectSliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&rectSlice))
 	rectSliceHeader.Cap = 4
@@ -110,6 +114,8 @@ func MonitorEnumProcCallback(hMonitor C.uintptr_t, hDC C.uintptr_t, lpRect C.uin
 
 	// converts a C pointer to a cgo struct pointer
 	// the struct definition is in "common.h"
+	// References:
+	// - https://utcc.utoronto.ca/~cks/space/blog/programming/GoCGoCompatibleStructs
 	rectCStruct := (*C.struct_rect)(unsafe.Pointer(uintptr(lpRect)))
 
 	monitor := monitor{
@@ -155,6 +161,7 @@ func SetProcessDpiAwareness() bool {
 func EnumDisplayMonitors(t *testing.T) {
 	var err error
 
+	// set DPI awareness (again, it may already be set in the application side-by-side configuration)
 	awarenessRet := SetProcessDpiAwareness()
 	assert.EqualValues(t, true, awarenessRet)
 
