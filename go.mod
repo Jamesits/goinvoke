@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/mattn/go-pointer v0.0.1
 	github.com/saferwall/pe v1.3.4
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/sys v0.4.0

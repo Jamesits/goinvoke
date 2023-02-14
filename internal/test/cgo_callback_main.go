@@ -11,52 +11,78 @@ package test
 */
 import "C"
 import (
-	"errors"
+	"fmt"
 	"github.com/jamesits/goinvoke"
+	"github.com/mattn/go-pointer"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/sys/windows"
+	"testing"
+	"unsafe"
 )
 
-var dwData = uintptr(114514)
-var callbackDataValidated = true
-
-//export MonitorEnumProcCallback
-func MonitorEnumProcCallback(unnamedParam1 C.uintptr_t, unnamedParam2 C.uintptr_t, unnamedParam3 C.uintptr_t, unnamedParam4 C.uintptr_t) C.bool {
-	if uintptr(unnamedParam4) != dwData {
-		callbackDataValidated = false
-		return C.bool(false)
-	}
-
-	return C.bool(true)
-}
-
 type user32 struct {
-	// no tag, use field name to match function
 	EnumDisplayMonitors *windows.LazyProc
 }
 
-func EnumDisplayMonitors() error {
+type rect struct {
+	left   uint32
+	top    uint32
+	right  uint32
+	bottom uint32
+}
+
+func (r rect) String() string {
+	return fmt.Sprintf("from %dx%d to %dx%d", r.top, r.left, r.bottom, r.right)
+}
+
+type monitor struct {
+	hMonitor       uintptr
+	hDeviceContext uintptr
+	rect           rect
+}
+
+func (m monitor) String() string {
+	return fmt.Sprintf("hMonitor = 0x%x, hDC = 0x%x, rect = %s", m.hMonitor, m.hDeviceContext, m.rect)
+}
+
+//export MonitorEnumProcCallback
+func MonitorEnumProcCallback(unnamedParam1 C.uintptr_t, unnamedParam2 C.uintptr_t, unnamedParam3 C.uintptr_t, unnamedParam4 C.uintptr_t) C.bool {
+	monitors := pointer.Restore(unsafe.Pointer(uintptr(unnamedParam4))).(*[]monitor)
+
+	monitor := monitor{
+		hMonitor:       uintptr(unnamedParam1),
+		hDeviceContext: uintptr(unnamedParam2),
+		rect: rect{ // TODO: fill RECT
+			left:   0,
+			top:    0,
+			right:  0,
+			bottom: 0,
+		},
+	}
+
+	*monitors = append(*monitors, monitor)
+	return C.bool(true)
+}
+
+func EnumDisplayMonitors(t *testing.T) {
 	var err error
 
 	u := user32{}
 	err = goinvoke.Unmarshal("user32.dll", &u)
-	if err != nil {
-		return err
-	}
+	assert.NoError(t, err)
+
+	monitors := &[]monitor{}
 
 	_, _, err = u.EnumDisplayMonitors.Call(
 		uintptr(0),                            // hdc = NULL
 		uintptr(0),                            // lprcClip = NULL
 		uintptr(C.monitor_enum_proc_callback), // lpfnEnum
-		dwData,                                // dwData
+		uintptr(pointer.Save(monitors)),       // dwData
 	)
 
-	if err != windows.ERROR_SUCCESS {
-		return err
+	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
+	assert.Greater(t, len(*monitors), 0)
+	for i, m := range *monitors {
+		fmt.Printf("Monitor #%d: %s\n", i, m)
 	}
-
-	if !callbackDataValidated {
-		return errors.New("dwData validation failed")
-	}
-
-	return nil
 }
