@@ -17,13 +17,13 @@ import (
 // sanity tests, plus some demonstration of how to use this library
 // some unit tests are from https://github.com/dotnet/pinvoke/blob/c01077e0511e6cec6d860b3373ca2a60ba7cbcae/test/Kernel32.Tests/Kernel32Facts.cs
 type kernel32 struct {
-	GetTickCount    *windows.LazyProc
-	GetTickCount64  *windows.LazyProc
-	SetLastError    *windows.LazyProc
-	SetErrorMode    *windows.LazyProc
-	GetStartupInfoW *windows.LazyProc
-	GetStartupInfoA *windows.LazyProc
-	GetSystemInfo   *windows.LazyProc
+	GetTickCount    *windows.Proc
+	GetTickCount64  *windows.Proc
+	SetLastError    *windows.Proc
+	SetErrorMode    *windows.Proc
+	GetStartupInfoW *windows.Proc
+	GetStartupInfoA *windows.Proc
+	GetSystemInfo   *windows.Proc
 }
 
 // value mapping from runtime.GOARCH to LPSYSTEM_INFO.wProcessorArchitecture
@@ -161,7 +161,7 @@ func TestUnmarshalUser32(t *testing.T) {
 type shlwapi struct {
 	// no tag, use field name to match function
 	// works only on Windows Vista or later
-	SHCreateMemStream *windows.Proc
+	SHCreateMemStream *windows.LazyProc
 
 	// only function tag
 	SHCreateMemStreamByFunc *windows.Proc `func:"SHCreateMemStream"`
