@@ -2,6 +2,8 @@
 
 package test
 
+// Demonstrates how to write C callbacks in Go.
+//
 // cgo callback documentation:
 // - https://eli.thegreenplace.net/2019/passing-callbacks-and-pointers-to-cgo/
 // - https://blog.marlin.org/cgo-referencing-c-library-in-go
