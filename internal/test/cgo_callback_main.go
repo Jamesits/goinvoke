@@ -161,9 +161,9 @@ func SetProcessDpiAwareness() bool {
 func EnumDisplayMonitors(t *testing.T) {
 	var err error
 
-	// set DPI awareness (again, it may already be set in the application side-by-side configuration)
-	awarenessRet := SetProcessDpiAwareness()
-	assert.EqualValues(t, true, awarenessRet)
+	// set DPI awareness (again)
+	// (It may already be set in the application side-by-side configuration, so it might return false)
+	_ = SetProcessDpiAwareness()
 
 	// Have to use a pointer here, because we are going to append to the slice in the callback function, and slice
 	// address might change

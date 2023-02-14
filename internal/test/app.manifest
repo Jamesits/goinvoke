@@ -4,7 +4,7 @@
   <assemblyIdentity type="win32"
                     name="me.swineson.goinvoke.internal.test"
                     version="1.0.0.0"
-                    processorArchitecture="amd64"
+                    processorArchitecture="*"
                     publicKeyToken="0000000000000000"
   />
 
@@ -37,7 +37,20 @@
       <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">permonitorv2,permonitor</dpiAwareness>
       <gdiScaling xmlns="http://schemas.microsoft.com/SMI/2017/WindowsSettings">false</gdiScaling>
+      <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
     </asmv3:windowsSettings>
   </asmv3:application>
+
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity type="win32"
+                        name="Microsoft.Windows.Common-Controls"
+                        version="6.0.0.0"
+                        processorArchitecture="*"
+                        publicKeyToken="6595b64144ccf1df"
+                        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
 
 </assembly>
