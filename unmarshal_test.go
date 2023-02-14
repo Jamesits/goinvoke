@@ -156,7 +156,7 @@ func TestUnmarshalUser32(t *testing.T) {
 }
 
 // unmarshal tests for windows.Proc
-// test data from: https://github.com/golang/go/issues/16507
+// test case from: https://github.com/golang/go/issues/16507
 // https://learn.microsoft.com/en-us/windows/win32/api/shlwapi/nf-shlwapi-shcreatememstream#remarks
 type shlwapi struct {
 	// no tag, use field name to match function
