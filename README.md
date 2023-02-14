@@ -3,7 +3,7 @@
 Load DLLs and import functions with ease. 
 
 If all you need is an equivalent of `LoadLibrary` and `GetProcAddress` in Go, this library is a lot easier to work with 
-than cgo. It does not require a C header to start with, and allow you to dynamically load different DLLs exposing the 
+than cgo. It does not require a C header to start with, and allows you to dynamically load different DLLs exposing the 
 same set of functions.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/jamesits/goinvoke.svg)](https://pkg.go.dev/github.com/jamesits/goinvoke)
