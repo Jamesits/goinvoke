@@ -2,7 +2,7 @@
   <configuration default="false" name="invoker" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="goinvoke" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="-dll &quot;kernel32.dll&quot; -generate" />
+    <parameters value="-dll &quot;user32.dll&quot; -generate" />
     <kind value="PACKAGE" />
     <package value="github.com/jamesits/goinvoke/cmd/invoker" />
     <directory value="$PROJECT_DIR$" />

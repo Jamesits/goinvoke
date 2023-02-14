@@ -18,9 +18,9 @@ import (
 type {{ .TypeName }} struct {
     {{ range $a := .Exports -}}
     {{- if eq $a.Function "" -}}
-    {{ $a.TypeName }} *windows.Proc `ordinal:"{{- $a.Ordinal -}}"`
+    {{ $a.Field }} {{ $a.Type }} `ordinal:"{{- $a.Ordinal -}}"`
     {{- else -}}
-    {{ $a.TypeName }} *windows.LazyProc `func:"{{- $a.Function -}}"`
+    {{ $a.Field }} {{ $a.Type }} `func:"{{- $a.Function -}}"`
     {{- end }}
     {{ end -}}
 }

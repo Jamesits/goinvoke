@@ -106,15 +106,23 @@ func main() {
 	}
 
 	for _, v := range peMeta.Export.Functions {
-		var typeName string
+		var fieldName string
 		if v.Name == "" {
-			typeName = fmt.Sprintf("Ord%d", v.Ordinal)
+			fieldName = fmt.Sprintf("Ord%d", v.Ordinal)
 		} else {
-			typeName = utils.FormatPublicType(strings.TrimLeft(v.Name, trimPrefix))
+			fieldName = utils.FormatPublicType(strings.TrimLeft(v.Name, trimPrefix))
+		}
+
+		var typeName string
+		if lazy {
+			typeName = "*windows.LazyProc"
+		} else {
+			typeName = "*windows.Proc"
 		}
 
 		d.Exports = append(d.Exports, export{
-			TypeName: typeName,
+			Field:    fieldName,
+			Type:     typeName,
 			Ordinal:  v.Ordinal,
 			Function: v.Name,
 		})

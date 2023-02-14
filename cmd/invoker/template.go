@@ -10,7 +10,8 @@ var srcTemplateString string
 var srcTemplate = template.Must(template.New("").Parse(srcTemplateString))
 
 type export struct {
-	TypeName string
+	Field    string
+	Type     string
 	Ordinal  uint32
 	Function string
 }
