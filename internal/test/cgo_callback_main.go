@@ -74,7 +74,7 @@ type rect struct {
 }
 
 func (r rect) String() string {
-	return fmt.Sprintf("from %dx%d to %dx%d (size %dx%d)", r.left, r.top, r.right, r.bottom, r.right-r.left, r.bottom-r.top)
+	return fmt.Sprintf("from (%d, %d) to (%d, %d), size %dx%d", r.left, r.top, r.right, r.bottom, r.right-r.left, r.bottom-r.top)
 }
 
 type monitor struct {
