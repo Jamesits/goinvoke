@@ -26,7 +26,7 @@ type kernel32 struct {
 	GetSystemInfo   *windows.Proc
 }
 
-// value mapping from runtime.GOARCH to LPSYSTEM_INFO.wProcessorArchitecture
+// value mapping from runtime.GOARCH to SYSTEM_INFO.wProcessorArchitecture
 // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/ns-sysinfoapi-system_info
 var processorArchitectureMap = map[string]uint16{
 	"386":   0,
@@ -155,7 +155,7 @@ func TestUnmarshalUser32(t *testing.T) {
 	assert.Nil(t, u.gks)
 }
 
-// unmarshal tests for windows.Proc
+// `ordinal` tag functionality
 // test case from: https://github.com/golang/go/issues/16507
 // https://learn.microsoft.com/en-us/windows/win32/api/shlwapi/nf-shlwapi-shcreatememstream#remarks
 type shlwapi struct {
