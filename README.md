@@ -55,10 +55,11 @@ func main() {
 }
 ```
 
-For more examples of using this library, [`unmarshal_test.go`](unmarshal_test.go) is a good start point. 
-[Go: WindowsDLLs](https://github.com/golang/go/wiki/WindowsDLLs) also offers a great view of using 
-the `(*windows.Proc).Call()` method. If you need to define callback functions, see [`cgo_callback_main.go`](internal/test/cgo_callback_main.go) 
-for an example. 
+For more examples of using this library, [`unmarshal_test.go`](unmarshal_test.go) is a good start point. If you need 
+to define callback functions, see [`cgo_callback.go`](internal/test/cgo_callback.go) for an example. 
+
+[Go: WindowsDLLs](https://github.com/golang/go/wiki/WindowsDLLs) offers a great view of using the 
+`(*windows.Proc).Call()` method. 
 
 ## Type Generator
 
