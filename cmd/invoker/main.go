@@ -66,6 +66,10 @@ func main() {
 		log.Printf("unable to parse package name: %v", err)
 		os.Exit(78)
 	}
+	if packageName == "" {
+		log.Printf("Current package does not have a name yet. Maybe create at least one valid .go file and try again?")
+		os.Exit(78)
+	}
 
 	artificialArgv0 := selfExecutableName
 	if preserveRealArg0 {
