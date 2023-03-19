@@ -7,23 +7,27 @@ import (
 	"github.com/jamesits/goinvoke/utils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/sys/windows"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 	"unsafe"
 )
 
 // sanity tests, plus some demonstration of how to use this library
 // some unit tests are from https://github.com/dotnet/pinvoke/blob/c01077e0511e6cec6d860b3373ca2a60ba7cbcae/test/Kernel32.Tests/Kernel32Facts.cs
 type kernel32 struct {
-	GetTickCount    *windows.Proc
-	GetTickCount64  *windows.Proc
-	SetLastError    *windows.Proc
-	SetErrorMode    *windows.Proc
-	GetStartupInfoW *windows.Proc
-	GetStartupInfoA *windows.Proc
-	GetSystemInfo   *windows.Proc
+	GetTickCount              *windows.Proc
+	GetTickCount64            *windows.Proc
+	SetLastError              *windows.Proc
+	SetErrorMode              *windows.Proc
+	GetStartupInfoW           *windows.Proc
+	GetStartupInfoA           *windows.Proc
+	GetSystemInfo             *windows.Proc
+	QueryPerformanceFrequency *windows.Proc
+	QueryPerformanceCounter   *windows.Proc
 }
 
 // value mapping from runtime.GOARCH (plus some non-existent ones) to SYSTEM_INFO.wProcessorArchitecture
@@ -128,6 +132,21 @@ func TestUnmarshalKernel32(t *testing.T) {
 	assert.EqualValues(t, processorArchitecture(), wProcessorArchitecture)
 	dwPageSize := utils.HostByteOrder.Uint32(systemInfo[4:8])
 	assert.EqualValues(t, os.Getpagesize(), dwPageSize)
+
+	// test QueryPerformanceCounter
+	// code adopted from https://stackoverflow.com/a/1739265
+	var freq, count1, count2 uint64
+	ret1, _, err = k.QueryPerformanceFrequency.Call(uintptr(unsafe.Pointer(&freq)))
+	assert.EqualValues(t, 1, ret1) // If the installed hardware supports a high-resolution performance counter, the return value is nonzero.
+	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
+	ret1, _, err = k.QueryPerformanceCounter.Call(uintptr(unsafe.Pointer(&count1)))
+	assert.EqualValues(t, 1, ret1) // If the function succeeds, the return value is nonzero.
+	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
+	time.Sleep(1 * time.Second)
+	ret1, ret2, err = k.QueryPerformanceCounter.Call(uintptr(unsafe.Pointer(&count2)))
+	assert.EqualValues(t, 1, ret1)
+	assert.ErrorIs(t, err, windows.ERROR_SUCCESS)
+	assert.LessOrEqual(t, math.Abs(float64(count2-count1)/float64(freq)-1.0), 0.05) // accept a deviation of 5%
 }
 
 // unmarshal tests for windows.LazyProc
