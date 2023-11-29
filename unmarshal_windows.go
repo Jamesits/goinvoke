@@ -3,7 +3,6 @@
 package goinvoke
 
 import (
-	"errors"
 	"github.com/hashicorp/go-multierror"
 	"github.com/jamesits/goinvoke/utils"
 	"golang.org/x/sys/windows"
@@ -17,7 +16,7 @@ var typeOfProc = reflect.TypeOf((*windows.Proc)(nil))
 // Unmarshal loads the DLL into memory, then fills all struct fields with type *windows.LazyProc with exported functions.
 func Unmarshal(path string, v any) error {
 	var err error
-	var syntheticErr = errors.New("unmarshal failed")
+	var syntheticErr = ErrorUnmarshalFailed
 	var errorOccurred = false
 
 	var ld *windows.LazyDLL

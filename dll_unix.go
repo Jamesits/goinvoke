@@ -4,7 +4,10 @@ package goinvoke
 
 import (
 	"github.com/ebitengine/purego"
+	"github.com/jamesits/goinvoke/utils"
 	"golang.org/x/sys/unix"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"unsafe"
@@ -129,14 +132,34 @@ type LazyDLL struct {
 // Load loads DLL file d.Name into memory. It returns an error if fails.
 // Load will not try to load DLL, if it is already loaded into memory.
 func (d *LazyDLL) Load() error {
-	// FIXME: need .System impl
+	dllPath := ""
+
+	if d.System && utils.IsImplicitRelativePath(d.Name) {
+		var searchPath []string
+		searchPath = append(searchPath, utils.PathsFromEnvironmentVariable("LD_LIBRARY_PATH")...)
+		searchPath = append(searchPath, utils.PathsFromFileLines("/etc/ld.so.conf")...)
+		for _, p := range searchPath {
+			f := filepath.Join(p, d.Name)
+			info, err := os.Stat(f)
+			if err == nil && !info.IsDir() {
+				dllPath = p
+				break
+			}
+		}
+	} else {
+		dllPath = d.Name
+	}
+	if dllPath == "" {
+		return ErrorNotFound
+	}
+
 	// Non-racy version of:
 	// if d.dll == nil {
 	if atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&d.dll))) == nil {
 		d.mu.Lock()
 		defer d.mu.Unlock()
 		if d.dll == nil {
-			dll, e := LoadDLL(d.Name)
+			dll, e := LoadDLL(dllPath)
 			if e != nil {
 				return e
 			}
