@@ -9,13 +9,14 @@ import (
 )
 
 type LibC struct {
-	Puts *Proc `func:"puts"`
+	Puts   *Proc `func:"puts"`
+	StrCmp *Proc `func:"strcmp"`
 }
 
 var libC LibC
 
 func TestUnmarshal(t *testing.T) {
-	err := Unmarshal("/usr/lib/libSystem.B.dylib", &libC)
+	err := Unmarshal("libSystem.B.dylib", &libC)
 	assert.NoError(t, err)
 	assert.NotNil(t, libC.Puts)
 

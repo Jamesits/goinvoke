@@ -8,10 +8,16 @@ import (
 	"golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"unsafe"
 )
+
+var defaultLibrarySearchPaths = []string{
+	"/usr/lib",
+	"/usr/local/lib",
+}
 
 // A DLL implements access to a single DLL.
 type DLL struct {
@@ -134,10 +140,13 @@ type LazyDLL struct {
 func (d *LazyDLL) Load() error {
 	dllPath := ""
 
-	if d.System && utils.IsImplicitRelativePath(d.Name) {
+	if runtime.GOOS == "darwin" && d.Name == "libSystem.B.dylib" {
+		dllPath = "/usr/lib/libSystem.B.dylib" // macOS hardcoded value
+	} else if d.System && utils.IsImplicitRelativePath(d.Name) {
 		var searchPath []string
 		searchPath = append(searchPath, utils.PathsFromEnvironmentVariable("LD_LIBRARY_PATH")...)
 		searchPath = append(searchPath, utils.PathsFromFileLines("/etc/ld.so.conf")...)
+		searchPath = append(searchPath, defaultLibrarySearchPaths...)
 		for _, p := range searchPath {
 			f := filepath.Join(p, d.Name)
 			info, err := os.Stat(f)
