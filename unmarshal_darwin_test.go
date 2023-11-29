@@ -22,4 +22,10 @@ func TestUnmarshal(t *testing.T) {
 
 	ret, _, _ := libC.Puts.Call(utils.StringToUintPtr("114514\n"))
 	assert.True(t, ret > 0)
+
+	ret, _, _ = libC.StrCmp.Call(utils.StringToUintPtr("A"), utils.StringToUintPtr("A"))
+	assert.True(t, ret == 0)
+
+	ret, _, _ = libC.StrCmp.Call(utils.StringToUintPtr("B"), utils.StringToUintPtr("A"))
+	assert.True(t, ret > 0)
 }
