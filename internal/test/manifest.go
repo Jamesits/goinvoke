@@ -1,3 +1,5 @@
+//go:build windows
+
 package test
 
 // Application manifest generation
