@@ -54,7 +54,7 @@ func Unmarshal(path string, v any) error {
 
 		// try to get a function name from tag first, then by attribute name
 		typeField := typeReference.Field(i)
-		procName := getStructTag(typeField, "func")
+		procName := utils.GetStructTag(typeField, "func")
 		if procName == "" {
 			procName = typeField.Name
 		}
@@ -80,7 +80,7 @@ func Unmarshal(path string, v any) error {
 			valueField.Set(reflect.ValueOf(proc).Convert(valueField.Type()))
 
 		case typeOfProc: // match by ordinal first, then name
-			ordinal, ordinalParsingError := strconv.ParseInt(getStructTag(typeField, "ordinal"), 10, 64)
+			ordinal, ordinalParsingError := strconv.ParseInt(utils.GetStructTag(typeField, "ordinal"), 10, 64)
 
 			var proc *windows.Proc
 			if ordinalParsingError == nil { // we have a valid ordinal
@@ -106,9 +106,4 @@ func Unmarshal(path string, v any) error {
 	}
 
 	return nil
-}
-
-// getStructTag returns the value of a named tag of a struct member
-func getStructTag(f reflect.StructField, tagName string) string {
-	return f.Tag.Get(tagName)
 }
