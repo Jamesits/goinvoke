@@ -15,7 +15,7 @@ type LibC struct {
 var libC LibC
 
 func TestUnmarshal(t *testing.T) {
-	err := Unmarshal("/usr/lib/libSystem.B.dylib", &libC)
+	err := Unmarshal("libc.so.6", &libC)
 	assert.NoError(t, err)
 	assert.NotNil(t, libC.Puts)
 
