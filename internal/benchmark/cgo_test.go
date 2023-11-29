@@ -1,4 +1,4 @@
-//go:build cgo
+//go:build cgo && windows
 
 package benchmark
 
@@ -11,26 +11,29 @@ import (
 )
 
 type kernel32 struct {
-	IsDebuggerPresent     *windows.Proc     `func:"IsDebuggerPresent"`
-	IsDebuggerPresentLazy *windows.LazyProc `func:"IsDebuggerPresent"`
+	IsDebuggerPresent          *windows.Proc            `func:"IsDebuggerPresent"`
+	IsDebuggerPresentLazy      *windows.LazyProc        `func:"IsDebuggerPresent"`
+	IsDebuggerPresentInterface goinvoke.FunctionPointer `func:"IsDebuggerPresent"`
+}
+
+var k kernel32
+
+func init() {
+	kernel32Dll := "kernel32.dll" // should only search for system paths (secure mode)
+
+	err := goinvoke.Unmarshal(kernel32Dll, &k)
+	if err != nil {
+		panic(err)
+	}
 }
 
 var isDebuggerPresent uintptr
 
 func BenchmarkSyscallIsDebuggerPresent(b *testing.B) {
 	var ret1 uintptr
-	var err error
-
-	k := kernel32{}
-	kernel32Dll := "kernel32.dll" // should only search for system paths (secure mode)
-
-	err = goinvoke.Unmarshal(kernel32Dll, &k)
-	if err != nil {
-		b.Fail()
-	}
 
 	for n := 0; n < b.N; n++ {
-		ret1, _, err = k.IsDebuggerPresent.Call()
+		ret1, _, _ = k.IsDebuggerPresent.Call()
 	}
 
 	isDebuggerPresent = ret1
@@ -38,18 +41,19 @@ func BenchmarkSyscallIsDebuggerPresent(b *testing.B) {
 
 func BenchmarkSyscallIsDebuggerPresentLazy(b *testing.B) {
 	var ret1 uintptr
-	var err error
-
-	k := kernel32{}
-	kernel32Dll := "kernel32.dll" // should only search for system paths (secure mode)
-
-	err = goinvoke.Unmarshal(kernel32Dll, &k)
-	if err != nil {
-		b.Fail()
-	}
 
 	for n := 0; n < b.N; n++ {
-		ret1, _, err = k.IsDebuggerPresentLazy.Call()
+		ret1, _, _ = k.IsDebuggerPresentLazy.Call()
+	}
+
+	isDebuggerPresent = ret1
+}
+
+func BenchmarkSyscallIsDebuggerPresentInterface(b *testing.B) {
+	var ret1 uintptr
+
+	for n := 0; n < b.N; n++ {
+		ret1, _, _ = k.IsDebuggerPresentInterface.Call()
 	}
 
 	isDebuggerPresent = ret1
