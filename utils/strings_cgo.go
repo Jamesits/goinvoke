@@ -1,4 +1,4 @@
-//go:build !go1.20
+//go:build cgo
 
 package utils
 
@@ -11,6 +11,8 @@ import (
 // Example:
 //
 //	var str := utils.UintPtrToString(uintptr(unsafe.Pointer(uint16ptr_variable)))
+//
+//go:uintptrescapes
 func UintPtrToString(ptr uintptr) string {
 	// https://groups.google.com/g/golang-nuts/c/H77hcVt3AAI
 	return C.GoString((*C.char)(unsafe.Pointer(ptr)))

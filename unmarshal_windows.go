@@ -46,12 +46,6 @@ func Unmarshal(path string, v any) error {
 
 	fieldCount := typeReference.NumField()
 	for i := 0; i < fieldCount; i++ {
-		// filter out incompatible attributes by their type
-		t := valueReference.Field(i).Type()
-		if (t != typeOfLazyProc) && (t != typeOfProc) {
-			continue
-		}
-
 		// try to get a function name from tag first, then by attribute name
 		typeField := typeReference.Field(i)
 		procName := utils.GetStructTag(typeField, "func")
@@ -65,8 +59,8 @@ func Unmarshal(path string, v any) error {
 			continue
 		}
 
-		switch t {
-		case typeOfLazyProc: // LazyProc only supports loading by name
+		if utils.CompatibleType(valueField, typeOfLazyProc) {
+			// LazyProc only supports loading by name
 			proc := ld.NewProc(procName)
 			// try to load the proc now
 			err = proc.Find()
@@ -76,10 +70,8 @@ func Unmarshal(path string, v any) error {
 				continue
 			}
 
-			// https://stackoverflow.com/a/53110731
-			valueField.Set(reflect.ValueOf(proc).Convert(valueField.Type()))
-
-		case typeOfProc: // match by ordinal first, then name
+			utils.Set(valueField, proc)
+		} else if utils.CompatibleType(valueField, typeOfProc) {
 			ordinal, ordinalParsingError := strconv.ParseInt(utils.GetStructTag(typeField, "ordinal"), 10, 64)
 
 			var proc *windows.Proc
@@ -94,16 +86,12 @@ func Unmarshal(path string, v any) error {
 				continue
 			}
 
-			// https://stackoverflow.com/a/53110731
-			valueField.Set(reflect.ValueOf(proc).Convert(valueField.Type()))
-		default:
-			continue
+			utils.Set(valueField, proc)
 		}
 	}
 
 	if errorOccurred {
 		return syntheticErr
 	}
-
 	return nil
 }
