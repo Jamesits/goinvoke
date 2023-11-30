@@ -1,4 +1,4 @@
-//go:build !cgo
+//go:build !cgo && go1.20
 
 package utils
 
