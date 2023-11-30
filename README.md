@@ -11,7 +11,7 @@ different DLLs exposing the same set of functions.
 ## Usage
 
 Simply define a struct with attributes in the type of `*windows.Proc` or `*windows.LazyProc`, and call 
-`goinvoke.Unmarshal("path\\to\\file.dll", pointerToStruct)`.
+`goinvoke.Unmarshal("path\\to\\file.dll", pointerToStruct)`. ([Other OSes](#cross-platform-usage))
 
 ```go
 //go:build windows
@@ -151,7 +151,7 @@ DO NOT do this unless you know exactly what you are doing.
 Since v1.3.0, goinvoke supports Linux, BSD and macOS. For example, on Linux you can:
 
 ```go
-//go:build windows
+//go:build linux
 
 package main
 
