@@ -2,7 +2,6 @@
 
 package utils
 
-import "C"
 import "unsafe"
 
 // UintPtrToString converts a zero-terminated raw "const char *" to a Go string.
@@ -18,5 +17,5 @@ func UintPtrToString(ptr uintptr) string {
 			break
 		}
 	}
-	return unsafe.String(ptr, i)
+	return unsafe.String((*byte)(unsafe.Pointer(ptr)), i)
 }
