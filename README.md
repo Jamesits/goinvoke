@@ -157,7 +157,7 @@ package main
 
 import (
 	"github.com/jamesits/goinvoke"
-    "github.com/jamesits/goinvoke/utils"
+	"github.com/jamesits/goinvoke/utils"
 )
 
 type LibC struct {
