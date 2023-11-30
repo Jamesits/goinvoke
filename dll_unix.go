@@ -4,20 +4,12 @@ package goinvoke
 
 import (
 	"github.com/ebitengine/purego"
-	"github.com/jamesits/goinvoke/utils"
 	"golang.org/x/sys/unix"
-	"os"
-	"path/filepath"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"unsafe"
 )
-
-var defaultLibrarySearchPaths = []string{
-	"/usr/lib",
-	"/usr/local/lib",
-}
 
 // A DLL implements access to a single DLL.
 type DLL struct {
@@ -132,7 +124,7 @@ type LazyDLL struct {
 	mu     sync.Mutex
 	dll    *DLL // non nil once DLL is loaded
 	Name   string
-	System bool
+	System bool // unused
 }
 
 // Load loads DLL file d.Name into memory. It returns an error if fails.
@@ -140,21 +132,9 @@ type LazyDLL struct {
 func (d *LazyDLL) Load() error {
 	dllPath := ""
 
+	// We do not really need a "System" load option here since dlopen() does this automatically.
 	if runtime.GOOS == "darwin" && d.Name == "libSystem.B.dylib" {
 		dllPath = "/usr/lib/libSystem.B.dylib" // macOS hardcoded value
-	} else if d.System && utils.IsImplicitRelativePath(d.Name) {
-		var searchPath []string
-		searchPath = append(searchPath, utils.PathsFromEnvironmentVariable("LD_LIBRARY_PATH")...)
-		searchPath = append(searchPath, utils.PathsFromFileLines("/etc/ld.so.conf")...)
-		searchPath = append(searchPath, defaultLibrarySearchPaths...)
-		for _, p := range searchPath {
-			f := filepath.Join(p, d.Name)
-			info, err := os.Stat(f)
-			if err == nil && !info.IsDir() {
-				dllPath = p
-				break
-			}
-		}
 	} else {
 		dllPath = d.Name
 	}
