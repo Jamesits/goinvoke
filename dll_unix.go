@@ -4,12 +4,33 @@ package goinvoke
 
 import (
 	"github.com/ebitengine/purego"
+	"github.com/jamesits/goinvoke/utils"
 	"golang.org/x/sys/unix"
+	"reflect"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"unsafe"
 )
+
+var typeOfLazyProc = reflect.TypeOf((*LazyProc)(nil))
+var typeOfProc = reflect.TypeOf((*Proc)(nil))
+
+// convert a LazyDLL to DLL, assume it has been loaded.
+func unLazy(lazyDLL *LazyDLL) *DLL {
+	return &DLL{
+		Name:   lazyDLL.Name,
+		Handle: lazyDLL.Handle(),
+	}
+}
+
+func newLazyDLL(path string) *LazyDLL {
+	if utils.IsImplicitRelativePath(path) {
+		return NewLazySystemDLL(path)
+	} else {
+		return NewLazyDLL(path)
+	}
+}
 
 // A DLL implements access to a single DLL.
 type DLL struct {
@@ -26,7 +47,7 @@ type DLL struct {
 // Use LazyDLL in golang.org/x/sys/windows for a secure way to
 // load system DLLs.
 func LoadDLL(name string) (*DLL, error) {
-	h, err := purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_GLOBAL)
+	h, err := purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_LOCAL)
 	if err != nil {
 		return nil, err
 	}

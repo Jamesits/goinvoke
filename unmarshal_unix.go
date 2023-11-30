@@ -1,5 +1,3 @@
-//go:build unix
-
 package goinvoke
 
 import (
@@ -9,34 +7,20 @@ import (
 	"reflect"
 )
 
-var typeOfLazyProc = reflect.TypeOf((*LazyProc)(nil))
-var typeOfProc = reflect.TypeOf((*Proc)(nil))
-
 // Unmarshal loads the DLL into memory, then fills all struct fields with type *windows.LazyProc with exported functions.
 func Unmarshal(path string, v any) error {
 	var err error
 	var syntheticErr = errors.New("unmarshal failed")
 	var errorOccurred = false
 
-	var ld *LazyDLL
-	if utils.IsImplicitRelativePath(path) {
-		ld = NewLazySystemDLL(path)
-	} else {
-		ld = NewLazyDLL(path)
-	}
-
+	ld := newLazyDLL(path)
 	err = ld.Load()
 	if err != nil {
 		errorOccurred = true
 		syntheticErr = multierror.Append(syntheticErr, err)
 		return syntheticErr
 	}
-
-	// create a corresponding windows.Dll object for compatibility
-	d := &DLL{
-		Name:   ld.Name,
-		Handle: ld.Handle(),
-	}
+	d := unLazy(ld)
 
 	// https://stackoverflow.com/a/46354875
 	valueReference := reflect.ValueOf(v).Elem()
