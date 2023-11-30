@@ -13,7 +13,7 @@ import "unsafe"
 func UintPtrToString(ptr uintptr) string {
 	i := uintptr(0)
 	for ; ; i++ {
-		if byte(*unsafe.Pointer(ptr + i)) == 0 {
+		if byte(*unsafe.Pointer(uintptr(ptr) + i)) == 0 {
 			break
 		}
 	}
