@@ -170,7 +170,7 @@ func main() {
 	err := goinvoke.Unmarshal("libc.so.6", &libC)
 	if err != nil {
 		panic(err)
-    }
+	}
 
 	_, _, _ = libC.Puts.Call(utils.StringToUintPtr("114514\n"))
 }
