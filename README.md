@@ -2,9 +2,9 @@
 
 Load DLLs and import functions with ease. 
 
-If all you need is an equivalent of `LoadLibrary` and `GetProcAddress` in Go, this library is a lot easier to work with 
-than cgo. It does not require a C header to start with, and allows you to dynamically load different DLLs exposing the 
-same set of functions.
+If all you need is an equivalent of `LoadLibrary`/`dlopen` and `GetProcAddress`/`dlsym` in Go, this library is a 
+lot easier to work with than cgo. It does not require a C header to start with, and allows you to dynamically load 
+different DLLs exposing the same set of functions.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/jamesits/goinvoke.svg)](https://pkg.go.dev/github.com/jamesits/goinvoke)
 
@@ -14,6 +14,8 @@ Simply define a struct with attributes in the type of `*windows.Proc` or `*windo
 `goinvoke.Unmarshal("path\\to\\file.dll", pointerToStruct)`.
 
 ```go
+//go:build windows
+
 package main
 
 import (
@@ -61,7 +63,7 @@ to define callback functions, see [`cgo_callback.go`](internal/test/cgo_callback
 [Go: WindowsDLLs](https://github.com/golang/go/wiki/WindowsDLLs) offers a great view of using the 
 `(*windows.Proc).Call()` method. 
 
-## Type Generator
+## Type Generator (Windows only)
 
 Have a large DLL with a lot of functions and want to access all of them at once? Use our convenient `invoker` tool to
 generate the struct required! For example, if we want to call multiple functions in `user32.dll`, use the following 
@@ -74,6 +76,8 @@ invoker -dll "user32.dll" -generate
 A file named `user32_dll.go` will be generated in the current directory with all the exports from that DLL. To use it 
 in your code:
 ```go
+//go:build windows
+
 package main
 
 import (
@@ -103,10 +107,11 @@ For advanced usage of this tool, run `invoker -help`.
 
 # Caveats
 
-## Relative Import
+## Relative Import (Windows only)
 
-Due to security concerns, if the path is relative and only contains a base name (e.g. `"kernel32.dll"`), file lookup
-is limited to *only* `%WINDIR%\System32`. 
+On Windows, due to security concerns, if the path is relative and only contains a base name (e.g. `"kernel32.dll"`), 
+file lookup is limited to *only* `%WINDIR%\System32`. On platforms other than Windows, we always use`dlopen(3)` lookup 
+order.
 
 If you want to load a DLL packaged with your program (the DLL sits right beside your EXE, or under some sub-folder), 
 the safe way is to get the directory where your program exists first:
@@ -141,6 +146,39 @@ with `".\\filename.dll"`.
 Loading a DLL from an arbitrary working directory might lead to serious security issues. 
 DO NOT do this unless you know exactly what you are doing.
 
+## Cross Platform Usage
+
+Since v1.3.0, goinvoke supports Linux, BSD and macOS. For example, on Linux you can:
+
+```go
+//go:build windows
+
+package main
+
+import (
+	"github.com/jamesits/goinvoke"
+    "github.com/jamesits/goinvoke/utils"
+)
+
+type LibC struct {
+	Puts *goinvoke.Proc `func:"puts"`
+}
+
+var libC LibC
+
+func main() {
+	err := goinvoke.Unmarshal("libc.so.6", &libC)
+	if err != nil {
+		panic(err)
+    }
+
+	_, _, _ = libC.Puts.Call(utils.StringToUintPtr("114514\n"))
+}
+```
+
+For true cross-platform code, you can use `goinvoke.FunctionPointer` interface instead of `*windows.Proc` 
+and `*goinvoke.Proc`.
+
 ## Error Processing
 
 The `Unmarshal()` method returns an error with type `(*multierror.Error)` if any of the following case happens:
@@ -154,7 +192,7 @@ field is `nil` as an indicator of exported function existence of your loaded DLL
 If you really want to decode individual errors, use `err.(*multierror.Error).Errors`. There are some examples 
 in [`unmarshal_test.go`](unmarshal_test.go).
 
-## Importing Functions by Ordinal
+## Importing Functions by Ordinal (Windows only)
 
 Importing functions by ordinal is fully supported, just use `*windows.Proc` and add a `ordinal` tag. The `ordinal` tag, 
 if exists, always overrides the `func` tag.
