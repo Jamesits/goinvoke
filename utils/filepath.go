@@ -15,7 +15,7 @@ func BaseName(path string) string {
 
 // IsImplicitRelativePath tests if the path only contains a file name.
 func IsImplicitRelativePath(path string) bool {
-	return !(filepath.IsAbs(path) || strings.ContainsRune(filepath.Clean(path), filepath.Separator))
+	return !(filepath.IsAbs(path) || strings.ContainsRune(path, filepath.Separator))
 }
 
 // ExecutableDir returns the directory containing current executable.
